@@ -13,6 +13,7 @@ function serializeNativeUser(user) {
     username: user.username,
     email: user.email,
     coins: user.coins,
+    isAdmin: Boolean(user.isAdmin),
     isExternal: false,
   };
 }
@@ -61,6 +62,7 @@ async function signup(req, res, next) {
       username: normalizedUsername,
       email: normalizedEmail,
       password: hashedPassword,
+      isAdmin: false,
     });
 
     await CoinTransaction.create({
@@ -87,6 +89,14 @@ async function signup(req, res, next) {
 }
 
 async function login(req, res, next) {
+  return loginWithAdminRequirement(req, res, next, false);
+}
+
+async function adminLogin(req, res, next) {
+  return loginWithAdminRequirement(req, res, next, true);
+}
+
+async function loginWithAdminRequirement(req, res, next, adminOnly) {
   try {
     const { identifier, username, email, password } = req.body;
     const rawIdentifier = String(identifier || username || email || '').trim();
@@ -110,6 +120,13 @@ async function login(req, res, next) {
       return res.status(401).json({
         success: false,
         message: 'Invalid username/email or password',
+      });
+    }
+
+    if (adminOnly && !user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access only',
       });
     }
 
@@ -219,7 +236,7 @@ async function me(req, res, next) {
     }
 
     const userId = req.user?.userId;
-    const user = await User.findById(userId).select('_id name username email coins');
+    const user = await User.findById(userId).select('_id name username email coins isAdmin');
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -241,6 +258,7 @@ async function me(req, res, next) {
 module.exports = {
   signup,
   login,
+  adminLogin,
   externalSession,
   me,
 };

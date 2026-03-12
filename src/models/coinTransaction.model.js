@@ -20,6 +20,7 @@ const coinTransactionSchema = new mongoose.Schema(
         'withdraw-request',
         'withdraw-complete',
         'withdraw-failed',
+        'admin-credit',
       ],
       required: true,
     },

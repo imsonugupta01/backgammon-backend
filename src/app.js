@@ -3,6 +3,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 
 const authRoutes = require('./routes/auth.routes');
+const adminRoutes = require('./routes/admin.routes');
 const matchRoutes = require('./routes/match.routes');
 const walletRoutes = require('./routes/wallet.routes');
 
@@ -17,6 +18,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/wallet', walletRoutes);
 

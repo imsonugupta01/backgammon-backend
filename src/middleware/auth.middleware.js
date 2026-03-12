@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/user.model');
 
 function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization || '';
@@ -27,3 +28,29 @@ function requireAuth(req, res, next) {
 }
 
 module.exports = { requireAuth };
+
+async function requireAdmin(req, res, next) {
+  if (req.user?.principalType === 'external' || !req.user?.userId) {
+    return res.status(403).json({
+      success: false,
+      message: 'Admin access only',
+    });
+  }
+
+  try {
+    const user = await User.findById(req.user.userId).select('_id name email isAdmin');
+    if (!user?.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access only',
+      });
+    }
+
+    req.adminUser = user;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { requireAuth, requireAdmin };
